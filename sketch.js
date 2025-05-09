@@ -5,7 +5,7 @@ let predictions = [];
 function setup() {
   createCanvas(640, 480);
   video = createCapture(VIDEO);
-  video.size(width, height);
+  video.size(640, 480);  // 修正這裡！
   video.hide();
 
   handpose = ml5.handpose(video, modelReady);
@@ -33,7 +33,6 @@ function drawHands() {
   for (let i = 0; i < predictions.length; i++) {
     const landmarks = predictions[i].landmarks;
 
-    // 畫每根手指的線段（從掌心到指尖）
     const fingers = {
       thumb: [0, 1, 2, 3, 4],
       index: [0, 5, 6, 7, 8],
@@ -54,7 +53,6 @@ function drawHands() {
       }
     }
 
-    // 畫每個點
     fill(255, 0, 0);
     noStroke();
     for (let j = 0; j < landmarks.length; j++) {
