@@ -2,6 +2,13 @@ let video;
 let poseNet;
 let pose;
 let skeleton;
+let mountainImg, landImg, noiseImg;
+
+function preload() {
+  // mountainImg = loadImage("image211217.jpg"); // Uncomment and add the correct path if needed
+  landImg = loadImage("landscape.jpg");
+  noiseImg = loadImage("noise1.jpg");
+}
 
 function setup() {
   createCanvas(640, 480);
@@ -30,6 +37,7 @@ function draw() {
 		translate(video.width,0)  //因為攝影機顯示的是反像的畫面，需要透過這兩條指令來做反轉
 		scale(-1,1)    //因為攝影機顯示的是反像的畫面，需要透過這兩條指令來做反轉
     image(video, 0, 0);  //顯示你的畫面在螢幕上
+    image(noiseImg, 0, 0, landImg.width, landImg.height); // 顯示圖片
 		if (pose) {
 			let eyeR = pose.rightEye;  //抓到右眼資訊，放到eyeR
 			let eyeL = pose.leftEye;   //抓到左眼資訊，放到eyeL
