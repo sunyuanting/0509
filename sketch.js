@@ -1,27 +1,23 @@
 let video;
-let poseNet;
-let pose;
-let skeleton;
+let handpose;
+let predictions = [];
 
 function setup() {
   createCanvas(640, 480);
   video = createCapture(VIDEO);
-  video.size(640, 480);
+  video.size(width, height);
   video.hide();
-  poseNet = ml5.poseNet(video, modelLoaded);
-  poseNet.on('pose', gotPoses);
+
+  handpose = ml5.handpose(video, modelReady);
+  handpose.on("predict", gotHands);
 }
 
-function gotPoses(poses) {
-  if (poses.length > 0) {
-    pose = poses[0].pose;
-    skeleton = poses[0].skeleton;
-    console.log("Got pose:", poses);
-  }
+function modelReady() {
+  console.log("Handpose model ready!");
 }
 
-function modelLoaded() {
-  console.log('poseNet ready');
+function gotHands(results) {
+  predictions = results;
 }
 
 function draw() {
@@ -30,36 +26,40 @@ function draw() {
   scale(-1, 1);
   image(video, 0, 0);
 
-  if (pose) {
-    let eyeR = pose.rightEye;
-    let eyeL = pose.leftEye;
-    let d = dist(eyeR.x, eyeR.y, eyeL.x, eyeL.y);
-    fill(255, 0, 0);
-    ellipse(pose.nose.x, pose.nose.y, d);
-    fill(0, 0, 255);
-    ellipse(pose.rightWrist.x, pose.rightWrist.y, 62);
-    ellipse(pose.leftWrist.x, pose.leftWrist.y, 62);
-
-    drawKeypoints();
-    drawSkeleton();
-  }
+  drawHands();
 }
 
-function drawKeypoints() {
-  for (let i = 0; i < pose.keypoints.length; i++) {
-    let x = pose.keypoints[i].position.x;
-    let y = pose.keypoints[i].position.y;
-    fill(0, 255, 0);
-    ellipse(x, y, 16, 16);
-  }
-}
+function drawHands() {
+  for (let i = 0; i < predictions.length; i++) {
+    const landmarks = predictions[i].landmarks;
 
-function drawSkeleton() {
-  for (let i = 0; i < skeleton.length; i++) {
-    let a = skeleton[i][0];
-    let b = skeleton[i][1];
+    // 畫每根手指的線段（從掌心到指尖）
+    const fingers = {
+      thumb: [0, 1, 2, 3, 4],
+      index: [0, 5, 6, 7, 8],
+      middle: [0, 9, 10, 11, 12],
+      ring: [0, 13, 14, 15, 16],
+      pinky: [0, 17, 18, 19, 20]
+    };
+
+    stroke(0, 255, 0);
     strokeWeight(2);
-    stroke(255, 0, 0);
-    line(a.position.x, a.position.y, b.position.x, b.position.y);
+
+    for (let finger in fingers) {
+      let points = fingers[finger].map(i => landmarks[i]);
+      for (let j = 0; j < points.length - 1; j++) {
+        let [x1, y1] = points[j];
+        let [x2, y2] = points[j + 1];
+        line(x1, y1, x2, y2);
+      }
+    }
+
+    // 畫每個點
+    fill(255, 0, 0);
+    noStroke();
+    for (let j = 0; j < landmarks.length; j++) {
+      let [x, y] = landmarks[j];
+      ellipse(x, y, 8, 8);
+    }
   }
 }
